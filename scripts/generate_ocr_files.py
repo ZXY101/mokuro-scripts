@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 from mokuro.run import run
 from urllib.parse import unquote
 
-import sys
 import json
 import os
 import re
@@ -106,23 +105,7 @@ def generate_ocr_json(path, ocr_path):
             return folder_name
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "path", help="Path to html file or directory to generate ocr files for")
-    parser.add_argument(
-        "-m", "--run_mokuro", help="Reprocess the manga with mokuro once the ocr files have been generated", action='store_true')
-    parser.add_argument(
-        "-r", "--remove_originals", help="Delete the original html files when repcrocessing with mokuro", action='store_true')
-
-    args = parser.parse_args()
-    ocr_dir = Path('./_ocr')
-    path = Path(args.path)
-
-    run_mokuro = args.run_mokuro
-    remove_originals = args.remove_originals
-
+def main():
     if not path.exists():
         print('Path does not exist')
         exit()
@@ -152,3 +135,33 @@ if __name__ == '__main__':
                 os.remove(path)
             print(f'Reprocessing {folder_name}')
             run(folder_name)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "path", help="Path to html file or directory to generate ocr files for")
+    parser.add_argument(
+        "-m", "--run_mokuro", help="Reprocess the manga with mokuro once the ocr files have been generated", action='store_true')
+    parser.add_argument(
+        "-r", "--remove_originals", help="Delete the original html files when repcrocessing with mokuro", action='store_true')
+    parser.add_argument(
+        "-pd", "--parent_dir", help="Specify if the given path is parent directory containing multiple sub dirs", action='store_true')
+
+    args = parser.parse_args()
+    ocr_dir = Path('./_ocr')
+    path = Path(args.path)
+
+    run_mokuro = args.run_mokuro
+    remove_originals = args.remove_originals
+    parent_dir = args.parent_dir
+
+    if parent_dir:
+        print(f'Processing every directory within {path.name}')
+        for p in path.expanduser().absolute().iterdir():
+            if p.is_dir():
+                path = p
+                main()
+    else:
+        main()
